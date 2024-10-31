@@ -13,7 +13,7 @@ created: 2024-10-23T21:09
 Complete this table with the required information, then remove this line:
 
 | Given Name | Family Name | Student ID |
-| ---------- | ----------- | ---------- |
+| -----Yang Tyin----- | -----Lim----- | -----20103962----- |
 |            |             |            |
 
 
@@ -71,17 +71,17 @@ Gives:
 
 ## 2.1 Identify Data Types
 
-| Item | Data Type |
-|---------|-----|
-| id  |   |
-| title |  |
-| year |  |
-| writer |  | 
-| summary | | 
-| franchise |  | 
-| running time |  |
-| budget |  |
-| box office | | 
+| Item | Data Type     |
+|---------|---------------|
+| id  | ObjectId      |
+| title | string        |
+| year | integer       |
+| writer | array(string) | 
+| summary | string        | 
+| franchise | string        | 
+| running time | integer       |
+| budget | integer       |
+| box office | double        | 
 
 
 
@@ -94,7 +94,7 @@ Gives:
 Connection String:
 
 ```js
-	db.collection_name.find();
+	mongodb://localhost:27017
 ```
 	
 ### 3.2 Database Creation
@@ -104,7 +104,7 @@ Connection String:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	use saas_bed_portfolio_2024s2
 ```
 
 ### 3.3 Collection Creation
@@ -114,12 +114,13 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.createCollection('movies')
+    db.movies.insertOne({Title: 'Fight Club', Writer: 'Chuck Palahniuk', Year: 1999, Actors: ['Brad Pitt', 'Edward Norton']})
 ```
 
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the creation of the database and the collection.
+![NoSQL Databases & Collection](./images/step-3-001.png)
 
 # Step 4: CRUD - Create
 
