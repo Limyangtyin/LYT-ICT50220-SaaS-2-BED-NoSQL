@@ -131,7 +131,94 @@ Screen Shot:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.insertMany([
+  {
+    _id: ObjectId("67231930a5ec64dab72bfef3"),
+    Title: "The Hobbit: An Unexpected Journey",
+    Writer: "J.R.R. Tolkien",
+    Year: 2012,
+    Franchise: "The Hobbit",
+    RunningTime: 169,
+    Budget: 200000000,
+    BoxOffice: 1015000000
+  },
+  {
+    Title: "Yet Another Fake Film Name"
+  },
+  {
+    Title: "The Hobbit: The Desolation of Smaug",
+    Writer: "J.R.R. Tolkien",
+    Year: 2013,
+    Franchise: "The Hobbit",
+    RunningTime: 161,
+    Budget: 230000000,
+    BoxOffice: 959300000
+  },
+  {
+    Title: "Inglorious Basterds",
+    Writer: "Quentin Tarantino",
+    Year: 2009,
+    Actors: ["Brad Pitt", "Diane Kruger", "Eli Roth"],
+    RunningTime: 153,
+    Budget: 70000000,
+    BoxOffice: 321500000
+  },
+  {
+    Title: "Star Trek: Nemesis",
+    Year: 2002,
+    Writer: ["John Logan", "Rick Berman", "Brent Spiner"],
+    Summary: "A clone of Picard, created by the Romulans, assassinates the Romulan Senate, assumes absolute power, and lures Picard and the Enterprise to Romulus under the false pretext of a peace overture.",
+    Franchise: "Star Trek",
+    RunningTime: 117,
+    Budget: 60000000,
+    BoxOffice: 67300000
+  },
+  {
+    Title: "Avatar"
+  },
+  {
+    Title: "Pee Wee Herman's Big Adventure",
+    RunningTime: 91,
+    Budget: 7000000,
+    BoxOffice: 40900000
+  },
+  {
+    Title: "Pulp Fiction",
+    Writer: "Quentin Tarantino",
+    Year: 1994,
+    Actors: ["John Travolta", "Uma Thurman"],
+    RunningTime: 154,
+    Budget: 8000000,
+    BoxOffice: 213900000
+  },
+  {
+    Title: "Dummy Film Name"
+  },
+  {
+    Title: "The Hobbit: The Battle of the Five Armies",
+    Writer: "J.R.R. Tolkien",
+    Year: 2012,
+    Franchise: "The Hobbit",
+    Synopsis: "Bilbo and Company are forced to engage in a war against an array of combatants and keep the Lonely Mountain from falling into the hands of a rising darkness.",
+    RunningTime: 144,
+    Budget: 250000000,
+    BoxOffice: 940300000
+  },
+  {
+    Title: "Another Fictional Film Name"
+  },
+  {
+    Title: "Star Trek VI: The Undiscovered Country",
+    Year: 1991,
+    Franchise: "Star Trek",
+    Writer: ["Nicholas Meyer", "Denny Martin Flinn"],
+    Summary: "When Qo'noS' moon Praxis (the Klingon Empire's chief energy source) is devastated by an explosion, caused by over-mining, the catastrophe also contaminating Qo'noS' atmosphere, the Klingons make peace overtures to the Federation. While on the way to Earth for a peace summit, the Klingon Chancellor is assassinated by Enterprise crewmen, and Kirk and McCoy are held accountable by the Chancellor's Chief of Staff and sentenced to life on a prison planet. Spock attempts to prove Kirk's innocence, but in doing so, uncovers a massive conspiracy against the peace process with participants from both sides.",
+    RunningTime: 110,
+    Budget: 30000000,
+    BoxOffice: 96800000
+  }
+]);
+
 ```
 
 # Step 5: CRUD - Retrieve Queries
@@ -143,7 +230,7 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find();
 ```
 	
 ## 5.2 Retrieve all films written by…
@@ -153,12 +240,12 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find({Writer: "Quentin Tarantino"});
 ```
 
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the writer query.
+![NoSQL Databases & Collection](./images/step-5.2-001.png)
 
 ## 5.3 Retrieve films with actor(s)…
 
@@ -167,7 +254,7 @@ Screen Shot:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find({Actors: "Brad Pitt"});
 ```
 	
 ## 5.4 Retrieve films from a franchise…
@@ -177,7 +264,7 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find({Franchise: "The Hobbit"});
 ```
 	
 ## 5.5 Retrieve films before/after…
@@ -187,12 +274,20 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find({
+		$or: [
+			{Year: {$lt: 1995}},
+			{Year: {$gt: 2010}}
+		]
+	});
 ```
 	
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the range query.
+![NoSQL Databases & Collection](./images/step-5.5-001.png)
+![NoSQL Databases & Collection](./images/step-5.5-002.png)
+![NoSQL Databases & Collection](./images/step-5.5-003.png)
+
 
 ## 5.6 Retrieve films longer than…
 
@@ -201,7 +296,7 @@ Screen Shot:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find({ RunningTime: { $gt: 100}});
 ```
 
 # Step 6: CRUD - Updates
@@ -213,7 +308,15 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.updateOne(
+  { Title: "The Hobbit: The Desolation of Smaug" },
+  { $set: { Synopsis: "The dwarves, along with Bilbo Baggins and Gandalf the Grey, continue their quest to reclaim Erebor, their homeland, from Smaug. Bilbo Baggins is in possession of a mysterious and magical ring." } }
+);
+
+db.movies.updateOne(
+  { Title: "The Hobbit: An Unexpected Journey" },
+  { $set: { Synopsis: "A reluctant hobbit, Bilbo Baggins, sets out to the Lonely Mountain with a spirited group of dwarves to reclaim their mountain home - and the gold within it - from the dragon Smaug." } }
+);
 ```
 	
 ## 6.2 Update document with an actor
@@ -223,12 +326,28 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.updateOne(
+		{Title: "Star Trek VI: The Undiscovered Country"},
+		{$addToSet: {Actors: {$each: ["William Shatner", "Leonard Nimoy", "Deforest Kelly", "James Doohan", "Christopher Plummer"]}}}
+	);
+
+	db.movies.updateOne(
+		{Title: "Star Trek: Nemesis"},
+		{$addToSet: {Actors: {$each: ["Patrick Stewart", "Jonathan Frakes", "Brent Spiner", "LeVar Burton", "Michael Dorn", "Gates McFadden", "Marina Sirtis" ]}}}
+	);
+
+	db.movies.updateOne(
+		{Title: "Star Trek VI: The Undiscovered Country"},
+		{$addToSet: {Actors: {$each: ["Walter Koenig", "Nichelle Nochols", "George Takei", "Kim Cattrall", "David Warner"]}}}
+	);
 ```
 
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the update query.
+![NoSQL Databases & Collection](./images/step-6.2-001.png)
+![NoSQL Databases & Collection](./images/step-6.2-002.png)
+![NoSQL Databases & Collection](./images/step-6.2-003.png)
+![NoSQL Databases & Collection](./images/step-6.2-004.png)
 
 # Step 7: CRUD – Searches
 
