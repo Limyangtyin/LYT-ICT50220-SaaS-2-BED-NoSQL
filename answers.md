@@ -360,7 +360,9 @@ Performing searches on collections.
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find(
+		{Title: {$regex: /F/i}}
+	);
 ```
 
 ## 7.2 Searching for synopses with …
@@ -370,7 +372,9 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find(
+		{Title: {$regex: /Gandalf/i}}
+	);
 ```
 
 ## 7.3 Searching for synopses with… and not …
@@ -380,7 +384,9 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find(
+		{Synopsis: {$regex: /Bilbo/i, $not: /Gandalf/i}}
+	);
 ```
 
 ## 7.4 Searching for synopses with … or …
@@ -390,12 +396,18 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find(
+		{
+			Synopsis: {
+				$regex: /Klingon|Romulan/i
+			}
+		}
+	);
 ```
 
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the synopses search.
+![NoSQL Databases & Collection](./images/step-7.4-001.png)
 
 ## 7.5 Searching for synopses with … and …
 
@@ -404,7 +416,13 @@ Screen Shot:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find(
+		{
+			Synopsis: {
+				$regex: /Gold/i, $regex: /Dragon/i
+			}
+		}
+	);
 ```
 
 # Step 8: CRUD - Deletions
@@ -418,12 +436,13 @@ This step requires you to remove movies from the collection.
 Query Solution:
 
 ```js
-	db.collection_name.find();
+db.movies.deleteOne({Title: "Pee Wee Herman's Big Adventure"});
+
 ```
 
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the delete query.
+![NoSQL Databases & Collection](./images/step-8.1-001.png)
 
 ## 8.2 Remove a movie by ID…
 
@@ -432,7 +451,10 @@ Screen Shot:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find({Title: "Yet Another Fake Film Name"});
+
+  db.movies.deleteOne({_id: ObjectId('671a043e9aff4f5ffd6bcfad')});
+
 ```
 
 ## 8.3 Removing multiple movies…
@@ -442,7 +464,7 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.deleteMany({Title: /Fiction/i});
 ```
 
 # Step 9: NoSQL Indexes
@@ -456,12 +478,12 @@ Using the movies collection, create the indexes to match the following condition
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.createIndex({Title: 1});
 ```
 
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the creation index.
+![NoSQL Databases & Collection](./images/step-9.1-001.png)
 
 ## 9.2 Indexing multiple fields
 
@@ -470,7 +492,9 @@ Screen Shot:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.createIndex({Title: 'text', Franchise: 'text'});
+
+  db.movies.createIndex({Franchise: 1, Title: 1});
 ```
 
 
