@@ -505,12 +505,15 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.find({Title: /Star/i}).explain()
+
 ```
 
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the execution plan.
+![NoSQL Databases & Collection](./images/step-9.3-001.png)
+![NoSQL Databases & Collection](./images/step-9.3-002.png)
+![NoSQL Databases & Collection](./images/step-9.3-003.png)
 
 # Step 10: Aggregation
 
@@ -523,7 +526,7 @@ In this step you will be aggregating data within a collection.
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.countDocuments({Franchise: "Star Trek" });
 ```
 
 ## 10.2 Mean box office takings…
@@ -533,7 +536,10 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.aggregate({
+$group: {
+_id: null,
+averageBoxOffice: {$avg: "$BoxOffice"}}});
 ```
 
 ## 10.3 Profit earnings
@@ -543,12 +549,18 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.aggregate([
+  {
+$project: {
+_id: 0,
+Title: 1,
+profit: {$subtract: ["$BoxOffice", "$Budget"]}}}]);
 ```
 
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the profit calculation query.
+![NoSQL Databases & Collection](./images/step-10.3-001.png)
+![NoSQL Databases & Collection](./images/step-10.3-002.png)
 
 ## 10.4 Grouping data
 
@@ -557,7 +569,11 @@ Screen Shot:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movies.aggregate([
+  {
+$group: {
+_id: "$Franchise",
+movieCount: {$sum: 1}}}]);
 ```
 
 # Step 11: Triggers
@@ -571,7 +587,15 @@ Using the movies collection, we are now going to create triggers to provide an a
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.createCollection("movie_audit");
+
+  function insertLog(data){
+db.movies.insertOne(data);
+db.movie_audit.insertOne(
+  {
+action: "INSERT",
+action_date: new Date(),
+original_data: data})};
 ```
 
 ## 11.2 Testing the insert trigger works correctly
@@ -581,7 +605,14 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	insertLog({
+Title: "Jeffrey",
+Writer: "Paul Rudnick",
+Year: 1995,
+Actors: ["Sigourney Weaver", "Patrick Stewart", "Michael T.Weiss", "Steven Weber", "Bryan Batt"],
+BoxOffice: 3500000,
+RunningTime: 92}
+);
 ```
 
 ## 11.3 Create trigger for updated data
@@ -591,12 +622,25 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+function updateLog(matchData, updateData) {
+const originalData = db.movies.findOne(matchData)
+
+db.movies.updateOne(
+  matchData,
+  {$set: updataData}
+  )
+
+db.movie_audit.insertOne(
+  {
+action: "UPDATE",
+action_date: new Date(),
+original_data: originalData,
+data: updateData})};
 ```
 
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the creation of the trigger.
+![NoSQL Databases & Collection](./images/step-11.3-001.png)
 
 ## 11.4 Testing the update trigger works correctly
 
@@ -605,7 +649,26 @@ Screen Shot:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	updateLog(
+  { Title: "Avatar" },
+  {
+    Budget: 237000000,
+    RunningTime: 162,
+    BoxOffice: 29230000,
+    Franchise: "Avatar"
+  }
+);
+
+updateLog(
+  { Title: "Avatar" },
+  {
+    $addToSet: {
+      Actors: { 
+        $each: ["Sam Worthington", "Zoe Saldana", "Stephen Lang", "Michelle Rodriguez", "Sigourney Weaver"]
+      }
+    }
+  }
+);
 ```
 
 ## 11.5 Create trigger for deleted data
@@ -615,7 +678,13 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	function deleteLog(matchData){
+const originalData = db.movies.findOne(matchData)
+db.movies.deleteOne(matchData)
+db.movie_audit.insertOne({
+action: "DELETE",
+action_date: new Date(),
+original_data: originalData})};
 ```
 
 ## 11.6 Testing the delete trigger works correctly
@@ -625,7 +694,7 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	deleteLog({Title: /Dummy/i});
 ```
 
 ## 11.7 Verify the log contains data…
@@ -635,12 +704,14 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.collection_name.find();
+	db.movie_audit.find();
 ```
 
 Screen Shot:
 
-> Replace this line with a screenshot of the output from the movie audit log.
+![NoSQL Databases & Collection](./images/step-11.7-001.png)
+![NoSQL Databases & Collection](./images/step-11.7-001.png)
+![NoSQL Databases & Collection](./images/step-11.7-001.png)
 
 
 
