@@ -13,8 +13,8 @@ created: 2024-10-23T21:09
 Complete this table with the required information, then remove this line:
 
 | Given Name | Family Name | Student ID |
-| -----Yang Tyin----- | -----Lim----- | -----20103962----- |
-|            |             |            |
+| ---------- | ----------- | ---------- |
+| Yang Tyin  |     Lim     |  20103962  |
 
 
 ---
@@ -71,17 +71,17 @@ Gives:
 
 ## 2.1 Identify Data Types
 
-| Item | Data Type     |
-|---------|---------------|
-| id  | ObjectId      |
-| title | string        |
-| year | integer       |
-| writer | array(string) | 
-| summary | string        | 
-| franchise | string        | 
+| Item         | Data Type     |
+|--------------|---------------|
+| id           | ObjectId      |
+| title        | string        |
+| year         | integer       |
+| writer       | array(string) | 
+| summary      | string        | 
+| franchise    | string        | 
 | running time | integer       |
-| budget | integer       |
-| box office | double        | 
+| budget       | integer       |
+| box office   | double        | 
 
 
 
@@ -131,7 +131,7 @@ Screen Shot:
 Query Solution:
 
 ```js
-	db.movies.insertMany([
+	db.movies.insertOne(
   {
     _id: ObjectId("67231930a5ec64dab72bfef3"),
     Title: "The Hobbit: An Unexpected Journey",
@@ -141,10 +141,14 @@ Query Solution:
     RunningTime: 169,
     Budget: 200000000,
     BoxOffice: 1015000000
-  },
+  });
+
+  db.movies.insertOne(
   {
     Title: "Yet Another Fake Film Name"
-  },
+  });
+
+  db.movies.insertOne(
   {
     Title: "The Hobbit: The Desolation of Smaug",
     Writer: "J.R.R. Tolkien",
@@ -153,7 +157,9 @@ Query Solution:
     RunningTime: 161,
     Budget: 230000000,
     BoxOffice: 959300000
-  },
+  });
+
+  db.movies.insertMany([
   {
     Title: "Inglorious Basterds",
     Writer: "Quentin Tarantino",
@@ -587,16 +593,28 @@ Using the movies collection, we are now going to create triggers to provide an a
 Query Solution:
 
 ```js
-	db.createCollection("movie_audit");
+const changeStream = db.movies.watch([
+  { $match: { operationType: "insert" } }
+]);
 
-  function insertLog(data){
-db.movies.insertOne(data);
-db.movie_audit.insertOne(
-  {
-action: "INSERT",
-action_date: new Date(),
-original_data: data})};
+print("Watching for new movies...");
+
+while (changeStream.hasNext()) {
+  const change = changeStream.next();
+  const newMovie = change.fullDocument;
+
+  db.movie_audit.insertOne({
+    action: "INSERT",                          
+    action_date: new Date(),                   
+    original_data: newMovie                    
+  });
+
+  print(`Logged new movie: ${newMovie.Title}`);
+}
 ```
+
+![NoSQL Databases & Collection](./images/step-11.1-001.png)
+![NoSQL Databases & Collection](./images/step-11.1-002.png)
 
 ## 11.2 Testing the insert trigger works correctly
 
@@ -615,6 +633,8 @@ RunningTime: 92}
 );
 ```
 
+![NoSQL Databases & Collection](./images/step-11.2-001.png)
+
 ## 11.3 Create trigger for updated data
 
 - Create a trigger that monitors the movies collection for new data being added. 
@@ -622,20 +642,26 @@ RunningTime: 92}
 Query Solution:
 
 ```js
-function updateLog(matchData, updateData) {
-const originalData = db.movies.findOne(matchData)
+const changeStream = db.movies.watch([{
+  $match: { operationType: "update" }
+}]);
 
-db.movies.updateOne(
-  matchData,
-  {$set: updataData}
-  )
+print("Watching for movie updates...");
 
-db.movie_audit.insertOne(
-  {
-action: "UPDATE",
-action_date: new Date(),
-original_data: originalData,
-data: updateData})};
+while (changeStream.hasNext()) {
+  const change = changeStream.next();
+  const originalData = db.movies.findOne({ _id: change.documentKey._id }); 
+  const updatedData = change.fullDocument; 
+  
+  db.movie_audit.insertOne({
+    action: "UPDATE",
+    action_date: new Date(),
+    original_data: originalData,
+    data: updatedData
+  });
+
+  print(`Logged update for movie: ${updatedData.title}`);
+}
 ```
 
 Screen Shot:
@@ -649,27 +675,39 @@ Screen Shot:
 Query Solution:
 
 ```js
-	updateLog(
+db.movies.updateOne(
   { Title: "Avatar" },
-  {
-    Budget: 237000000,
-    RunningTime: 162,
-    BoxOffice: 29230000,
-    Franchise: "Avatar"
+  { 
+    $set: { 
+      Budget: 23700000,
+			RunningTime: 162,
+			BoxOffice: 2923000000,
+      Franchise: "Avatar" 
+    } 
   }
 );
 
-updateLog(
+db.movies.updateOne(
   { Title: "Avatar" },
-  {
-    $addToSet: {
+  { 
+    $addToSet: {  
       Actors: { 
-        $each: ["Sam Worthington", "Zoe Saldana", "Stephen Lang", "Michelle Rodriguez", "Sigourney Weaver"]
+        $each: [  
+          "Sam Worthington", 
+          "Zoe Saldana", 
+          "Stephen Lang", 
+          "Michelle Rodriguez", 
+          "Sigourney Weaver"
+        ]
       }
     }
   }
 );
 ```
+
+![NoSQL Databases & Collection](./images/step-11.4-001.png)
+![NoSQL Databases & Collection](./images/step-11.4-002.png)
+
 
 ## 11.5 Create trigger for deleted data
 
@@ -678,14 +716,29 @@ updateLog(
 Query Solution:
 
 ```js
-	function deleteLog(matchData){
-const originalData = db.movies.findOne(matchData)
-db.movies.deleteOne(matchData)
-db.movie_audit.insertOne({
-action: "DELETE",
-action_date: new Date(),
-original_data: originalData})};
+const changeStream = db.movies.watch([
+  { $match: { operationType: "delete" } }
+]);
+
+print("Watching for movie deletions...");
+
+while (changeStream.hasNext()) {
+  const change = changeStream.next();
+  
+  const deletedMovieId = change.documentKey._id;
+
+  db.movie_audit.insertOne({
+    action: "DELETE",
+    action_date: new Date(),
+    original_data: { _id: deletedMovieId }
+  });
+
+  print(`Logged delete for movie with ID: ${deletedMovieId}`);
+}
 ```
+
+![NoSQL Databases & Collection](./images/step-11.5-001.png)
+
 
 ## 11.6 Testing the delete trigger works correctly
 
@@ -694,8 +747,11 @@ original_data: originalData})};
 Query Solution:
 
 ```js
-	deleteLog({Title: /Dummy/i});
+db.movies.deleteOne({ Title: /Dummy/i });
 ```
+
+![NoSQL Databases & Collection](./images/step-11.6-001.png)
+
 
 ## 11.7 Verify the log contains data…
 
@@ -704,14 +760,17 @@ Query Solution:
 Query Solution:
 
 ```js
-	db.movie_audit.find();
+	db.movie_audit.find().pretty();
 ```
 
 Screen Shot:
 
 ![NoSQL Databases & Collection](./images/step-11.7-001.png)
-![NoSQL Databases & Collection](./images/step-11.7-001.png)
-![NoSQL Databases & Collection](./images/step-11.7-001.png)
+![NoSQL Databases & Collection](./images/step-11.7-002.png)
+![NoSQL Databases & Collection](./images/step-11.7-003.png)
+![NoSQL Databases & Collection](./images/step-11.7-004.png)
+![NoSQL Databases & Collection](./images/step-11.7-005.png)
+
 
 
 
@@ -720,7 +779,7 @@ Screen Shot:
 What is the URL for your GitHub (or equivalent) repository for this assessment?
 
 ```text
-add url here
+https://github.com/Limyangtyin/LYT-ICT50220-SaaS-2-BED-NoSQL
 ```
 
 # END
